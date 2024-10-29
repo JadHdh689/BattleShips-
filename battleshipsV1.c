@@ -3,84 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
-// first choose difficulty (easy,hard)
-// enter names
-// create 2 2d arrays, ykuno initially kelon water chars (empty)
-// randomly choose ben 0 w 1 la hata n3ml display la awal player
-// ships ha ykuno *s
-// w bas opponent ysib l ship mnhot X w eza ma sab hot O (sab water)
-// PUTTING SHIPS:
-/*
-B3,horizontal : B3,C3,D3 (COLUMNS)
-B3,vertical: B3,B4,B5 (ROWS)
-NO COLLISIONS , MAKE SURE FIT IN GRID
 
-
-
-Opponents grid should be displayed at a players turn
-
-1 move
-Fire: Fireb3 receive hit or miss
-
-switch cases for each case
-
-
-
-
-user writes B3,horizontal
-
-boolean isHorizontal = true / false
-int sizeofShip = based 3al situation bl brute force code
-start index --> row and column
-in the main:
-if given B --> we have char ltr = B, --> int curr = (int) B --> column = curr - initialPointCOLUMN;
-create a function for this (DONE)
-row: 3 --> 3-1 = 2
-parameters: int row, int column ,isHorizontal, sizeofShip, 2D array (secret)
-
-if( row > 9 || column > 9) --> error
-if(isHorizontal){ if(10 - column < sizeofShip) error } 3,5  3 4 5 6 7 8
-if(!isHorizontal){ if(10 - row < sizeofShip) error }
-
-if(isHorizontal){
-stay at row
-for(i = column; i< sizeOfShip + column; i++){
-if(arr[row][i] == 'S') error
-else arr[row][i] == 'S'
-}
-
-if(!isHorizontal){
-stay at column
-for(i = row; i< row + sizeOfship; i++){
-if(arr[i][column] == 'S') error
-else arr[i][column] == 'S';
-
-}
-
-
-
-error --> return false;
-
-we will do while( boolean c1 = false)
-
-
-
-IN GAMEPLAY:
-WE WILL PUT CARRIER ---> 5
-BATTLESHIP ---->
-
-WHEN HIT , IF WATER SKIP
-IF NOT WATER, DO CHECK NUMBER IF PRESENT IN ARRAY ( BOOLEAN )
-IF PRESENT RETURN TRUE
-NOT PRESENT --> RETURN FALSE AND SAY WHICH SHIP WAS DESTROYED
-}
-
-
-}
- :
-
-
-*/
 
 
 
@@ -209,6 +132,35 @@ bool CheckAndAdd(int row, int column, bool isHorizontal, int sizeOfShip, char gi
         }
     }
     return true;
+}
+
+void placeShips(char grid[10][10], char *name, int size){
+bool check = false;
+do
+    {
+        printArray(grid);
+        printf("Please enter coordinates for the %s (%d cells) ", name, size);
+        char *Coordinates = (char *)malloc(15 * sizeof(char));
+        scanf("%14s", Coordinates);
+        printf("\n");
+        char temp = (int)Coordinates[1];
+        int row = temp - '0';                     // B3 --> SECOND INDEX IS THE ROW
+        int col = getCOLUMNindex(Coordinates[0]); // B3 --> FIRST INDEX IS THE COLUMN
+        bool isHorizontal = true;                 // initializing
+        if (Coordinates[3] == 'v' || Coordinates[3] == 'V'|| Coordinates[4] == 'V' || Coordinates[4] == 'v')   // B10, Vertical
+        {
+            isHorizontal = false; // vertical
+        }
+        if (Coordinates[2] == '0' && row == 1)
+        {
+            row = 10;
+        }
+        else if (Coordinates[2] == '0')
+        {
+            row = 20;
+        }
+        check = CheckAndAdd(row, col, isHorizontal, size, grid);
+    } while (check == false);
 }
 
 char Fire(int row, int column, char givenPublic[10][10], char givenSecret[10][10], bool isHardDiff)
@@ -375,116 +327,13 @@ int main()
     printf("\n\n\n\n\n");
     printf("%s please start first by putting all your ships.\n", name1);
     // place carrier
-    bool check = false;
-    do
-    {
-        printArray(gridp1SECRET);
-        printf("Please enter coordinates for the carrier (5 cells) ");
-        char *Coordinates = (char *)malloc(15 * sizeof(char));
-        scanf("%14s", Coordinates);
-        printf("\n");
-        char temp = (int)Coordinates[1];
-        int row = temp - '0';                     // B3 --> SECOND INDEX IS THE ROW
-        int col = getCOLUMNindex(Coordinates[0]); // B3 --> FIRST INDEX IS THE COLUMN
-        bool isHorizontal = true;                 // initializing
-        if (Coordinates[3] == 'v' || Coordinates[3] == 'V'|| Coordinates[4] == 'V' || Coordinates[4] == 'v')   // B10, Vertical
-        {
-            isHorizontal = false; // vertical
-        }
-        if (Coordinates[2] == '0' && row == 1)
-        {
-            row = 10;
-        }
-        else if (Coordinates[2] == '0')
-        {
-            row = 20;
-        }
-        check = CheckAndAdd(row, col, isHorizontal, 5, gridp1SECRET);
-    } while (check == false);
-
+    placeShips(gridp1SECRET, "Carrier", 5);
     // place battleship
-    check = false;
-    do
-    {
-        printArray(gridp1SECRET);
-        printf("Please enter coordinates for the battleship (4 cells) ");
-        char *Coordinates = (char *)malloc(15 * sizeof(char));
-        scanf("%14s", Coordinates);
-        printf("\n");
-        char temp = (int)Coordinates[1];
-        int row = temp - '0';                     // B3 --> SECOND INDEX IS THE ROW
-        int col = getCOLUMNindex(Coordinates[0]); // B3 --> FIRST INDEX IS THE COLUMN
-        bool isHorizontal = true;                 // initializing
-        if (Coordinates[3] == 'v' || Coordinates[3] == 'V'|| Coordinates[4] == 'V' || Coordinates[4] == 'v')
-        {
-            isHorizontal = false; // vertical
-        }
-        if (Coordinates[2] == '0' && row == 1)
-        {
-            row = 10;
-        }
-        else if (Coordinates[2] == '0')
-        {
-            row = 20;
-        }
-        check = CheckAndAdd(row, col, isHorizontal, 4, gridp1SECRET);
-    } while (check == false);
-
+    placeShips(gridp1SECRET, "Battleship", 4);
     // put destroyer
-    check = false;
-    do
-    {
-        printArray(gridp1SECRET);
-        printf("Please enter coordinates for the destroyer (3 cells) ");
-        char *Coordinates = (char *)malloc(15 * sizeof(char));
-        scanf("%14s", Coordinates);
-        printf("\n");
-        char temp = (int)Coordinates[1];
-        int row = temp - '0';                     // B3 --> SECOND INDEX IS THE ROW
-        int col = getCOLUMNindex(Coordinates[0]); // B3 --> FIRST INDEX IS THE COLUMN
-        bool isHorizontal = true;                 // initializing
-        if (Coordinates[3] == 'v' || Coordinates[3] == 'V'|| Coordinates[4] == 'V' || Coordinates[4] == 'v')
-        {
-            isHorizontal = false; // vertical
-        }
-        if (Coordinates[2] == '0' && row == 1)
-        {
-            row = 10;
-        }
-        if (Coordinates[1] >= '1' && Coordinates[1] <= '9' && Coordinates[2] >= '1' && Coordinates[2] <= '9')
-        {
-            row = 20; // give error
-        }
-        check = CheckAndAdd(row, col, isHorizontal, 3, gridp1SECRET);
-    } while (check == false);
-
+    placeShips(gridp1SECRET, "Destroyer", 3);
     // put submarine
-    check = false;
-    do
-    {
-        printArray(gridp1SECRET);
-        printf("Please enter coordinates for the submarine (2 cells) ");
-        char *Coordinates = (char *)malloc(15 * sizeof(char));
-        scanf("%14s", Coordinates);
-        printf("\n");
-        char temp = (int)Coordinates[1];
-        int row = temp - '0';                     // B3 --> SECOND INDEX IS THE ROW
-        int col = getCOLUMNindex(Coordinates[0]); // B3 --> FIRST INDEX IS THE COLUMN
-        bool isHorizontal = true;                 // initializing
-       if (Coordinates[3] == 'v' || Coordinates[3] == 'V'|| Coordinates[4] == 'V' || Coordinates[4] == 'v')
-        {
-            isHorizontal = false; // vertical
-        }
-        if (Coordinates[2] == '0' && row == 1)
-        {
-            row = 10;
-        }
-        else if (Coordinates[2] == '0')
-        {
-            row = 20;
-        }
-        check = CheckAndAdd(row, col, isHorizontal, 2, gridp1SECRET);
-    } while (check == false);
+    placeShips(gridp1SECRET, "Submarine", 2);
 
     // USE DO WHILE LOOP : DO .... WHILE (BOOLEAN CURR == FALSE, DONT WORRY ABOUT ERROR , ERROR IS WRITTEN IN FUNCTION)
 
@@ -492,212 +341,18 @@ int main()
 
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     printf("%s please put all your ships.\n", name2);
-
-    check = false;
-    do
-    {
-        printArray(gridp2SECRET);
-        printf("Please enter coordinates for the carrier (5 cells) ");
-        char *Coordinates = (char *)malloc(15 * sizeof(char));
-        scanf("%14s", Coordinates);
-        printf("\n");
-        char temp = (int)Coordinates[1];
-        int row = temp - '0';                     // B3 --> SECOND INDEX IS THE ROW
-        int col = getCOLUMNindex(Coordinates[0]); // B3 --> FIRST INDEX IS THE COLUMN
-        bool isHorizontal = true;                 // initializing
-        if (Coordinates[3] == 'v' || Coordinates[3] == 'V'|| Coordinates[4] == 'V' || Coordinates[4] == 'v')
-        {
-            isHorizontal = false; // vertical
-        }
-        if (Coordinates[2] == '0' && row == 1)
-        {
-            row = 10;
-        }
-        else if (Coordinates[2] == '0')
-        {
-            row = 20;
-        }
-        check = CheckAndAdd(row, col, isHorizontal, 5, gridp2SECRET);
-    } while (check == false);
-
+    // place carrier
+    placeShips(gridp2SECRET, "Carrier", 5);
     // place battleship
-    check = false;
-    do
-    {
-        printArray(gridp2SECRET);
-        printf("Please enter coordinates for the battleship (4 cells) ");
-        char *Coordinates = (char *)malloc(15 * sizeof(char));
-        scanf("%14s", Coordinates);
-        printf("\n");
-        char temp = (int)Coordinates[1];
-        int row = temp - '0';                     // B3 --> SECOND INDEX IS THE ROW
-        int col = getCOLUMNindex(Coordinates[0]); // B3 --> FIRST INDEX IS THE COLUMN
-        bool isHorizontal = true;                 // initializing
-        if (Coordinates[3] == 'v' || Coordinates[3] == 'V'|| Coordinates[4] == 'V' || Coordinates[4] == 'v')
-        {
-            isHorizontal = false; // vertical
-        }
-        if (Coordinates[2] == '0' && row == 1)
-        {
-            row = 10;
-        }
-        else if (Coordinates[2] == '0')
-        {
-            row = 20;
-        }
-        check = CheckAndAdd(row, col, isHorizontal, 4, gridp2SECRET);
-    } while (check == false);
-
+    placeShips(gridp2SECRET, "Battleship", 4);
     // put destroyer
-    check = false;
-    do
-    {
-        printArray(gridp2SECRET);
-        printf("Please enter coordinates for the destroyer (3 cells) ");
-        char *Coordinates = (char *)malloc(15 * sizeof(char));
-        scanf("%14s", Coordinates);
-        printf("\n");
-        char temp = (int)Coordinates[1];
-        int row = temp - '0';                     // B3 --> SECOND INDEX IS THE ROW
-        int col = getCOLUMNindex(Coordinates[0]); // B3 --> FIRST INDEX IS THE COLUMN
-        bool isHorizontal = true;                 // initializing
-       if (Coordinates[3] == 'v' || Coordinates[3] == 'V'|| Coordinates[4] == 'V' || Coordinates[4] == 'v')
-        {
-            isHorizontal = false; // vertical
-        }
-        if (Coordinates[2] == '0' && row == 1)
-        {
-            row = 10;
-        }
-        else if (Coordinates[2] == '0')
-        {
-            row = 20; // gives error
-        }
-        check = CheckAndAdd(row, col, isHorizontal, 3, gridp2SECRET);
-    } while (check == false);
-
+    placeShips(gridp2SECRET, "Destroyer", 3);
     // put submarine
-    check = false;
-    do
-    {
-        printArray(gridp2SECRET);
-        printf("Please enter coordinates for the submarine (2 cells) ");
-        char *Coordinates = (char *)malloc(15 * sizeof(char));
-        scanf("%14s", Coordinates);
-        printf("\n");
-        char temp = (int)Coordinates[1];
-        int row = temp - '0';                     // B3 --> SECOND INDEX IS THE ROW
-        int col = getCOLUMNindex(Coordinates[0]); // B3 --> FIRST INDEX IS THE COLUMN
-        bool isHorizontal = true;                 // initializing
-        if (Coordinates[3] == 'v' || Coordinates[3] == 'V'|| Coordinates[4] == 'V' || Coordinates[4] == 'v')
-        {
-            isHorizontal = false; // vertical
-        }
-        if (Coordinates[2] == '0' && row == 1)
-        {
-            row = 10; // CASE IF ROW = 10
-        }
-        else if (Coordinates[2] == '0')
-        {
-            row = 20;
-        }
-        check = CheckAndAdd(row, col, isHorizontal, 2, gridp2SECRET);
-    } while (check == false);
+    placeShips(gridp2SECRET, "Sumbarine", 2);
 
     
 
-    /*
-    for example, start with player 1
-    player 1 sees player 2 public grid
-    print player 1 name and ask him to do one
-    of the choices
-
-   Fire: Fire B3
-   --> ha nedtar n3uz function
-
-  Radar Sweep:
-  if given Bx
-  reveals B(x+1) , (B+1 = C)x
-  C(x+1)
-  Loop over these
-  return enemy ships found or not
-  Keep count of radar sweeps for each player
-  each player is allowed 3 (2 variables one for each player)
-
-  Smoke screen:
-  if given Bx
-  hides (x+1) , (B+1 = C)x
-  C(x+1)
-  if THE OPPONENT TRIES TO SCAN THEM
-  --> GIVES A MISS REGARDLESS
-  (PUT FOR PLAYER UNLOCKED OR NOT)
-  One smoke screen per ship they have sunk
-  which means
-  initially smokeScreenCount = 0
-  every ship sunk
-  count++
-  IF YOU USE SMOKESCREEN && COUNT == 0 --> SKIP TURN (DO NOTHING)
-  CLEAR CURRENT SCREEN (4 BLOCKS) --> PUT STARS IN THE CELLS???????
-  CLEAR SCREEN: PRINT \n 10 times !!!!
-
-
-
-
-
-
-  Artillery:
-  Fires a 2x2
-  same as before
-  output: hit or miss
-  Unlocked only ONCE DURING THE NEXT TURN
-  OF THE PLAYER WHO SINKS OTHER PLAYER'S SHIP
-  IN CURRENT TURN
-
-  (once per match)
-  we will use boolean to check
-  if the player SUNK THE LAST PIECE OF A CERTAIN SHIP
-  IF YES --> UNLOCK ABILITY (WE PUT FOR THE PLAYER IN DISPLAY
-  UNLOCKED OR NOT....)
-
-
-
-  Torpedo:
-  attacks as entire row or column
-  output: hit/miss
-  unlocked only once
-  do boolean = true
-  once you destroyed the 3rd ship
-  and only during same turn
-  (1 chance)
-  boolean true in same turn
-  false directly after (always do false after term ends....)
-
-    */
-
-    // do while (countOfshipsP1 != 0 && countOfshipsP2 != 0)
-
-    /*int countRound = 0
-    after each round increment
-    if countRound even --> player 1 turn
-    if countRound odd --> player 2 turn
-
-
-    in a player's turn:
-    first:
-    display the options
-    fire --> torpedo
-    print Public enemy grid
-    he gives us
-    Fire B3
-    scan 2 strings at same time
-    first string check if F,R,S...
-    Second string check coordinates
-    --> switch case
-    then in each switch --> enter a function
-
-
-
-    */
+    
 
     int SunkShipsP1 = 0;
     int SunkShipsP2 = 0;
