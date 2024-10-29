@@ -138,7 +138,7 @@ void placeShips(char grid[10][10], char *name, int size){
 bool check = false;
 do
     {
-        printArray(gridp);
+        printArray(grid);
         printf("Please enter coordinates for the %s (%d cells) ", name, size);
         char *Coordinates = (char *)malloc(15 * sizeof(char));
         scanf("%14s", Coordinates);
@@ -327,7 +327,7 @@ int main()
     printf("\n\n\n\n\n");
     printf("%s please start first by putting all your ships.\n", name1);
     // place carrier
-    placeShips(gridp1SECRET, "Carrier", 5)
+    placeShips(gridp1SECRET, "Carrier", 5);
     // place battleship
     placeShips(gridp1SECRET, "Battleship", 4);
     // put destroyer
