@@ -6,7 +6,7 @@
 
 
 
-
+// Given the number which represents the ship, another function calls this when a ship has been sunk
 void printWhichShip(char a)
 {
     if (a == '2')
@@ -18,7 +18,7 @@ void printWhichShip(char a)
     if (a == '5')
         printf("A carrier has been sunk\n");
 }
-
+// put water in the grid before the game starts
 void initializeArray(char given[10][10])
 {
     for (int i = 0; i < 10; i++)
@@ -53,19 +53,21 @@ void printArray(char given[10][10])
     // then print every element in the row
 }
 
+
 int getCOLUMNindex(char ltr)
 {
 
-    ltr = toupper(ltr); // to upper does no change unless its a letter
+    ltr = toupper(ltr); // only changes if given a letter
     int curr = (int)ltr;
 
     if (ltr >= 'A' && ltr <= 'Z')
         return (curr - 65);
-    return curr - '1'; // turpedo case....
-                       // COLUMN I &S A LETTER, COLUMN INDEX RECEIVE LETTER AND COMPARE IT WITH CAPITAL A TO KNOW WHICH LETTER
-                       // USE ASCII
+    return curr - '1'; // If we are doing the case of Turpedo, we might receive a row instead of a column which is a number
+                       // if given a number, return the number - 1 to get the index
 }
 
+
+// This function checks if the placement of the ship is valid. If yes, place the ship using the a number based on number of places it takes
 bool CheckAndAdd(int row, int column, bool isHorizontal, int sizeOfShip, char given[10][10])
 {
 
@@ -134,6 +136,7 @@ bool CheckAndAdd(int row, int column, bool isHorizontal, int sizeOfShip, char gi
     return true;
 }
 
+// it calls check and add
 void placeShips(char grid[10][10], char *name, int size){
 bool check = false;
 do
@@ -160,9 +163,12 @@ do
             row = 20;
         }
         check = CheckAndAdd(row, col, isHorizontal, size, grid);
+        free(Coordinates);
+    
     } while (check == false);
 }
 
+// fire function. returns what was hit. If the box aimed at is water --> miss. Else hit. We also change the private arrays.
 char Fire(int row, int column, char givenPublic[10][10], char givenSecret[10][10], bool isHardDiff)
 {
     if (row < 0 || column < 0 || row > 9 || column > 9)
@@ -205,6 +211,8 @@ char Fire(int row, int column, char givenPublic[10][10], char givenSecret[10][10
     */
 }
 
+
+// isSunk checks if the ship still exists
 boolean isSunk(char given, char Matrix[10][10])
 {
     for (int i = 0; i < 10; i++)
@@ -218,13 +226,10 @@ boolean isSunk(char given, char Matrix[10][10])
     return true; // couldn't find the piece --> the ship has sunk
 }
 
-/* smoke screen: make radar think this 2x2 stuff is water
-radar: goes by a 2x2, if there is a ship, return ship found
-radar can go over grid that has ship and smoke screen --> Return true if ship not hidden
 
-both utilize if given b3 --> does on b3, (b+1 = col+1)3, b(3+1 = row + 1 = 4) , c4 (row +1 and col + 1)
-
-*/
+// SmokeScreen uses an alternative array to implement the functionality
+// We will use && to check later if the area is a smoked area or a normal area
+// Fill smoked boxes with number 1
 void SmokeScreen(int SmokeGrid[10][10], int row, int col)
 {
     if (row < 0 || col < 0 || row > 9 || col > 9)
@@ -238,6 +243,8 @@ void SmokeScreen(int SmokeGrid[10][10], int row, int col)
     SmokeGrid[row + 1][col + 1] = 1;
 }
 
+
+// Uses && to check if the spots are hidden, if we find 1 ship and not hidden return true
 bool Radar(char grid[10][10], int SmokeGrid[10][10], int row, int col)
 {
     if (row < 0 || col < 0 || row > 9 || col > 9)
@@ -261,6 +268,9 @@ bool Radar(char grid[10][10], int SmokeGrid[10][10], int row, int col)
     // check all b3 c3 b4 c4
     // if b9 or at the edge dont do it
 }
+
+// after each hit, check if a sink has been sunk. If a ship has been sunk, call the function to print which ship has been sunk. 
+// change recentSunk to true if a ship has been sunk
 void total_fire(char hit, char grid[10][10], int *sunkShips, int *smokeScreen, bool *recentSunk)
 {
     if (hit != '~')
@@ -283,7 +293,7 @@ void total_fire(char hit, char grid[10][10], int *sunkShips, int *smokeScreen, b
 }
 int main()
 {
-    srand(time(0));
+    srand(time(0)); // used for randomness
     printf("Choose difficulty: (easy/ hard) == (0/1) ");
     int num = 0;
     scanf("%ld", &num);
@@ -293,16 +303,16 @@ int main()
 
     printf("\n");
     printf("Please enter name 1: ");
-    char *name1 = (char *)malloc(50 * sizeof(char)); // 50 chars allowed
-    scanf("%49s", name1);                            // name1 hye already pointer, fa fina n3ml hek
+    char *name1 = (char *)malloc(50 * sizeof(char)); 
+    scanf("%49s", name1);                            
     printf("\n");
     printf("Please enter name 2: ");
-    char *name2 = (char *)malloc(50 * sizeof(char)); // 50 chars allowed
+    char *name2 = (char *)malloc(50 * sizeof(char)); 
     scanf("%49s", name2);
 
     int random = rand() % 2; // takes a random integer --> even == 0, odd == 1
 
-    char gridp1SECRET[10][10]; // usually give size to function, but we wont
+    char gridp1SECRET[10][10];
     char gridp2SECRET[10][10];
     char gridp1PUBLIC[10][10];
     char gridp2PUBLIC[10][10];
@@ -311,19 +321,21 @@ int main()
     initializeArray(gridp2SECRET);
     initializeArray(gridp1PUBLIC);
     initializeArray(gridp2PUBLIC);
+// We use for each player a secret array and a public array
 
-    int initialPointColumn = 65;
-
+    
     // if random = 0, start player 1 and player 2 normally
     // if random = 1, swap names so that player 2 starts first
     if (random == 1)
     {
         //
-        char *temp = (char *)malloc(50 * sizeof(char)); // Temporary buffer for swapping
-        strcpy(temp, name1);                            // Store name1 in temp
-        strcpy(name1, name2);                           // Copy name2 to name1
-        strcpy(name2, temp);                            // Copy temp (original name1) to name2
+        char *temp = (char *)malloc(50 * sizeof(char)); 
+        strcpy(temp, name1);                            
+        strcpy(name1, name2);                           
+        strcpy(name2, temp);                            
+        free(temp);
     }
+    
     printf("\n\n\n\n\n");
     printf("%s please start first by putting all your ships.\n", name1);
     // place carrier
@@ -337,7 +349,7 @@ int main()
 
     // USE DO WHILE LOOP : DO .... WHILE (BOOLEAN CURR == FALSE, DONT WORRY ABOUT ERROR , ERROR IS WRITTEN IN FUNCTION)
 
-    // printf("%s %s", name1, name2);
+
 
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     printf("%s please put all your ships.\n", name2);
@@ -351,6 +363,7 @@ int main()
     placeShips(gridp2SECRET, "Sumbarine", 2);
 
     
+    // place ships for both players by using placeShips function
 
     
 
@@ -359,15 +372,11 @@ int main()
 
     int countRound = 0; // helps in switching between turns (even = player1, odd = player 2)
     char hit = '0';     // we will have a variable that receives what got hit (either water if no target or A NUMBER IF PART OF A SHIP GOT HIT)
-    int RadarSweepP1 = 3;
+    int RadarSweepP1 = 3; // Count how much radar sweeps left
     int RadarSweepP2 = 3;
-    int SmokeScreenP1 = 0;
+    int SmokeScreenP1 = 0; // Count how much smokescreens left
     int SmokeScreenP2 = 0;
-    int Art1 = 0;
-    int Art2 = 0;
-    int TorpedoP1 = 0;
-    int TorpedoP2 = 0;
-    int SmokeGridP1[10][10]; // if box != 1 no smoke, box = 1 smoke , garbage values can't be = 1
+    int SmokeGridP1[10][10]; // if box != 1 no smoke, box = 1 smoke
     int SmokeGridP2[10][10];
     for(int i = 0; i< 10; i++){
         for(int j = 0; j<10 ; j++){
@@ -375,6 +384,7 @@ int main()
             SmokeGridP2[i][j] = 0;
         }
     }
+    // initialize smokegrids
     bool RecentSunkP1 = false;
     bool RecentSunkP2 = false;
       printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
@@ -428,9 +438,7 @@ int main()
                     printf("Miss\n");
                 total_fire(hit, gridp2SECRET, &SunkShipsP2, &SmokeScreenP1, &RecentSunkP1);
                 break;
-                // hit is the NUMBER in char, check in SECRET IF IT IS NOT PRESENT, REMEMBER WE WOULDN'T RECEIVE IT UNLESS WE HIT IT
-                // IF IS SUNK IS TRUE --> ISSUNK = 1
-                // IF IT IS FALSE --> ISSUNK = 0
+                // Fire uses 2 functions
             case 'R':
             case 'r':
                 if (RadarSweepP1 > 0)
@@ -450,7 +458,8 @@ int main()
                 {
                     printf("No radar sweeps left. You lost your turn.\n");
                 }
-
+                // Radar returns true or false --> if true alert about the ships, if false don't
+                // Just use the function Radar that checks the smoke grids and secret grids using &&
                 break;
             case 'S':
             case 's':
@@ -465,13 +474,7 @@ int main()
                 }
                 RecentSunkP1 = false;
                 break;
-                /* how artillery works:
-                boolean p = false;
-                given B3
-                hit B3, hit B4, hit C3, hit C4 (the function takes all correctly)
-                and for each hit we check, if hit != water in any case --> p = true
-                based on p give hit or miss
-                 */
+                // SmokeScreen changes the 2x2 boxes to 1 in the smokeGrid of the current player
             case 'A':
             case 'a':
                 if (RecentSunkP1)
@@ -509,6 +512,7 @@ int main()
                     printf("You didn't sink a ship in the round before. You lost your turn.\n");
                 }
                 break;
+                // fire on B3,C3,B4,C4
 
             case 'T': // ignore coordinates[1] use coordinates[0]
             case 't':
@@ -547,15 +551,16 @@ int main()
                     printf("You don't meet the conditions to do a torpedo. You lost your turn.\n");
                 }
                 break;
-
+               // in torpedo use a for loop to either fire on an entire row or column
             default:
                 break;
             }
-
+            free(move);
+            free(coordinates);
             countRound++;
         }
         else if (countRound % 2 == 1)
-        {
+        {   // ALL FUNCTIONS SAME AS PLAYER 1
             printf("It's your turn %s\n\n", name2);    
             // player 2 turn
             printArray(gridp1PUBLIC);
@@ -602,9 +607,6 @@ int main()
                     printf("Miss\n");
                 total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2);
                 break;
-                // hit is the NUMBER in char, check in SECRET IF IT IS NOT PRESENT, REMEMBER WE WOULDN'T RECEIVE IT UNLESS WE HIT IT
-                // IF IS SUNK IS TRUE --> ISSUNK = 1
-                // IF IT IS FALSE --> ISSUNK = 0
             case 'R':
             case 'r':
                 if (RadarSweepP1 > 0)
@@ -639,13 +641,6 @@ int main()
                 }
                 RecentSunkP2 = false;
                 break;
-                /* how artillery works:
-                boolean p = false;
-                given B3
-                hit B3, hit B4, hit C3, hit C4 (the function takes all correctly)
-                and for each hit we check, if hit != water in any case --> p = true
-                based on p give hit or miss
-                 */
             case 'A':
             case 'a':
                 if (RecentSunkP2)
@@ -685,7 +680,7 @@ int main()
                 }
                 break;
 
-            case 'T': // ignore coordinates[1] use coordinates[0]
+            case 'T': 
             case 't':
                 if (SunkShipsP1 == 3 && RecentSunkP2)
                 {
@@ -728,6 +723,9 @@ int main()
                 break;
             }
             countRound++;
+
+            free(move);
+            free(coordinates);
         }
     
     
@@ -740,6 +738,8 @@ int main()
 
 if(SunkShipsP1 == 4) printf("%s wins.\n", name2);
 else printf("%s wins.\n", name1);
+free(name1);
+free(name2);
 return 0;
 
     
