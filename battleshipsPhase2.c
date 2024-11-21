@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #include <stdio.h>
 #include <Windows.h>
 #include <stdlib.h>
@@ -772,7 +771,7 @@ int main()
     else
         printf("%s wins.\n", name1);
     free(name1);
-    free(name2);
+    
     return 0;
 }
 
@@ -784,11 +783,3 @@ int main()
 
 // if hit -> go up if present or go down if present or go left or goo right and keep on going where present
 //
-=======
-#include <stdio.h>
-#include <Windows.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <ctype.h>
-
->>>>>>> cdbdffda2961dcee4a66959d1f6229929008b879
