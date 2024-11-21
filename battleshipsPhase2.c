@@ -6,6 +6,27 @@
 
 // Given the number which represents the ship, another function calls this when a ship has been sunk
 
+
+int GetMaxIndex(double ProbGrid[10][10]){
+
+double MaxProbability = 0;
+int MaxIndex = 0;
+
+for(int i = 0; i<10;i++){
+    for(int j = 0; j<10; j++){
+        if(ProbGrid[i][j] > MaxProbability){
+            MaxProbability = ProbGrid[i][j];
+            MaxIndex = 0;
+            MaxIndex += 10 * i;
+            MaxIndex += j;
+        }
+    }   
+}
+
+return MaxIndex;
+
+}
+
 void printWhichShip(char a)
 {
     if (a == '2')
@@ -219,6 +240,26 @@ void placeShipsBot(char grid[10][10], char *name, int size)
     } while (check == false);
 }
 
+
+void IfHit1(int row, int column, double PGrid[10][10]){
+int i = row;
+int j = column;
+PGrid[i+1][j] += 0.1;
+PGrid[i][j+1] += 0.1;
+PGrid[i-1][j] += 0.1;
+PGrid[i][j-1] += 0.1;
+}
+
+void IfMiss1(int row, int column, double PGrid[10][10]){
+int i = row;
+int j = column;
+PGrid[i+1][j] -= 0.1;
+PGrid[i][j+1] -= 0.1;
+PGrid[i-1][j] -= 0.1;
+PGrid[i][j-1] -= 0.1;
+}
+
+
 // fire function. returns what was hit. If the box aimed at is water --> miss. Else hit. We also change the private arrays.
 char Fire(int row, int column, char givenPublic[10][10], char givenSecret[10][10], bool isHardDiff)
 {
@@ -427,7 +468,9 @@ int main()
         IndexGrid[i] = i;
     }
 
-    int ProbabilityGridP1[10][10];
+    int Range = 100;
+
+    double ProbabilityGridP1[10][10];
     for(int i = 0; i<10; i++){
         for(int j = 0; j < 10; j++){
             ProbabilityGridP1[i][j] = 0.5;
@@ -619,41 +662,46 @@ int main()
             //    printf("5. Torpedo (Torpedo B/3) (%d left)\n", (RecentSunkP2 && SunkShipsP1 ==3));
 
             char *move = (char *)malloc(10 * sizeof(char));
-            char *coordinates = (char *)malloc(10 * sizeof(char));
             chooseMove(RadarSweepP2, SmokeScreenP2, RecentSunkP2, (RecentSunkP2 && SunkShipsP1 == 3), move);
-            scanf("%s", coordinates);
-            char col = toupper(coordinates[0]);
-            boolean isColLetter;
-            if (col >= 'A' && col <= 'Z')
-                isColLetter = true;
-            else
-                isColLetter = false;
-            //        ltr = toupper(ltr);
-            // int curr = (int)ltr;
-
-            // if (ltr >= 'A' && ltr <= 'Z')
-            int column = getCOLUMNindex(coordinates[0]); // COLUMN INDEX OF THE LETTER
-            int row = coordinates[1] - '1';              // incase of t garbage values AND ASCII
-            if (coordinates[2] == '0' && row == 0)
-            {
-                row = 9; // CASE IF ROW = 10
-            }
-            else if (coordinates[1] >= '1' && coordinates[1] <= '9' && coordinates[2] >= '1' && coordinates[2] <= '9')
-            {
-                row = 20; // give error
-            }
+            
             switch (move[0])
             {
 
             case 'F':
             case 'f':
+            
+            if(!RecentSunkP2 && RecentHitBot){
+            
+            } else{
+
+            
+            int MaxIndex = GetMaxIndex(ProbabilityGridP1);       
+            int Number = IndexGrid[MaxIndex];  // Get value from maxIndex which contains row and column
+            int column = Number%10;
+            int row = Number/10;   
+            double MaxProbability = ProbabilityGridP1[row][column]; // get probability
+            if(MaxProbability <= 0.5){
+             int MaxIndex = Range % 100;
+             int Number = IndexGrid[MaxIndex];
+             int column = Number % 10;
+             int row = Number / 10;
+            }
+            
+
+
+            //All below is OLD 
                 hit = Fire(row, column, gridp1PUBLIC, gridp1SECRET, isHardDiff);
-                if (hit != '~')
+                if (hit != '~'){
                     printf("Hit\n");
-                else
+                    IfHit1(row, column, ProbabilityGridP1);
+                    RecentHitBot = true; }
+                else{
                     printf("Miss\n");
-                total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2);
-                break;
+                    IfMiss1(row, column, ProbabilityGridP1); 
+                    RecentHitBot = false; }
+                 
+                total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2); 
+                break; } 
             case 'R':
             case 'r':
                 if (RadarSweepP1 > 0)
