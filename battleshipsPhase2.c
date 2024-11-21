@@ -421,6 +421,18 @@ int main()
     // initialize smokegrids
     bool RecentSunkP1 = false;
     bool RecentSunkP2 = false;
+    bool RecentHitBot = false;
+    int IndexGrid[100];
+    for(int i = 0; i<100; i++){
+        IndexGrid[i] = i;
+    }
+
+    int ProbabilityGridP1[10][10];
+    for(int i = 0; i<10; i++){
+        for(int j = 0; j < 10; j++){
+            ProbabilityGridP1[i][j] = 0.5;
+        }
+    }
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     while (SunkShipsP1 != 4 && SunkShipsP2 != 4)
     {
@@ -767,7 +779,7 @@ int main()
     }
 
     if (SunkShipsP1 == 4)
-        printf("%s wins.\n", name2);
+        printf("%s wins.\n", "Bot");
     else
         printf("%s wins.\n", name1);
     free(name1);
