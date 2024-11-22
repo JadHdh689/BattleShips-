@@ -6,27 +6,6 @@
 
 // Given the number which represents the ship, another function calls this when a ship has been sunk
 
-
-int GetMaxIndex(double ProbGrid[10][10]){
-
-double MaxProbability = 0;
-int MaxIndex = 0;
-
-for(int i = 0; i<10;i++){
-    for(int j = 0; j<10; j++){
-        if(ProbGrid[i][j] > MaxProbability){
-            MaxProbability = ProbGrid[i][j];
-            MaxIndex = 0;
-            MaxIndex += 10 * i;
-            MaxIndex += j;
-        }
-    }   
-}
-
-return MaxIndex;
-
-}
-
 void printWhichShip(char a)
 {
     if (a == '2')
@@ -46,6 +25,14 @@ void initializeArray(char given[10][10])
         for (int j = 0; j < 10; j++)
         {
             given[i][j] = '~';
+        }
+    }
+}
+
+void initializeProbability(int grid[10][10]){
+    for (int i = 0; i < 10; i++){
+        for (int j = 0; j < 10; j++){
+            grid[i][j] = 0;
         }
     }
 }
@@ -240,26 +227,6 @@ void placeShipsBot(char grid[10][10], char *name, int size)
     } while (check == false);
 }
 
-
-void IfHit1(int row, int column, double PGrid[10][10]){
-int i = row;
-int j = column;
-PGrid[i+1][j] += 0.1;
-PGrid[i][j+1] += 0.1;
-PGrid[i-1][j] += 0.1;
-PGrid[i][j-1] += 0.1;
-}
-
-void IfMiss1(int row, int column, double PGrid[10][10]){
-int i = row;
-int j = column;
-PGrid[i+1][j] -= 0.1;
-PGrid[i][j+1] -= 0.1;
-PGrid[i-1][j] -= 0.1;
-PGrid[i][j-1] -= 0.1;
-}
-
-
 // fire function. returns what was hit. If the box aimed at is water --> miss. Else hit. We also change the private arrays.
 char Fire(int row, int column, char givenPublic[10][10], char givenSecret[10][10], bool isHardDiff)
 {
@@ -383,6 +350,47 @@ void total_fire(char hit, char grid[10][10], int *sunkShips, int *smokeScreen, b
         *recentSunk = false;
     }
 }
+//always call this function with shipSize = 4
+void calculateProbability(int probabilityGrid[10][10], char grid[10][10], bool submarine_up, bool destoryer_up, bool battleship_up, int ship_size){
+    if (ship_size == 4 && battleship_up || ship_size == 3 && destoryer_up || ship_size == 2 && submarine_up){
+        for (int row = 0; row < 10; row++){
+            for (int column = 0; column <= 10-ship_size; column++){
+                if (grid[row][column+3] != '~' && ship_size >= 4)
+                    column += 3;
+                else if (grid[row][column+2] != '~' && ship_size >= 3)
+                    column +=2;
+                else if (grid[row][column+1] != '~' )
+                    column++;
+                else if (grid[row][column] == '~'){
+                    probabilityGrid[row][column]++;
+                    probabilityGrid[row][column+1]++;
+                    if (ship_size >= 3) probabilityGrid[row][column+2]++;
+                    if (ship_size >= 4) probabilityGrid[row][column+3]++;
+                }
+            }
+        }
+        for (int column = 0; column < 10; column++){
+            for (int row = 0; row <= 10-ship_size; row++){
+                if (grid[row+3][column] != '~' && ship_size >= 4)
+                    row += 3;
+                else if (grid[row+2][column] != '~' && ship_size >= 3)
+                    row +=2;
+                else if (grid[row+1][column] != '~' )
+                    row++;
+                else if (grid[row][column] == '~'){
+                    probabilityGrid[row][column] = probabilityGrid[row][column] + 1;
+                    probabilityGrid[row+1][column]++;
+                    if (ship_size >= 3) probabilityGrid[row+2][column]++;
+                    if (ship_size >= 4) probabilityGrid[row+3][column]++;
+                }
+            }
+        }
+    }
+    if (ship_size == 4){
+        calculateProbability(probabilityGrid, grid, submarine_up, destoryer_up, battleship_up, ship_size-1);
+        calculateProbability(probabilityGrid, grid, submarine_up, destoryer_up, battleship_up, ship_size-2);
+    }
+}
 int main()
 {
     srand(time(0)); // used for randomness
@@ -451,6 +459,9 @@ int main()
     int SmokeScreenP2 = 0;
     int SmokeGridP1[10][10]; // if box != 1 no smoke, box = 1 smoke
     int SmokeGridP2[10][10];
+    int probabilityGrid[10][10];
+    int parityArray[20] = {0,11,22,33,44,55,66,77,88,99,5,16,27,38,49,50,61,72,83,94};
+    int parityRange = 20;
     for (int i = 0; i < 10; i++)
     {
         for (int j = 0; j < 10; j++)
@@ -462,20 +473,11 @@ int main()
     // initialize smokegrids
     bool RecentSunkP1 = false;
     bool RecentSunkP2 = false;
-    bool RecentHitBot = false;
-    int IndexGrid[100];
-    for(int i = 0; i<100; i++){
-        IndexGrid[i] = i;
-    }
-
-    int Range = 100;
-
-    double ProbabilityGridP1[10][10];
-    for(int i = 0; i<10; i++){
-        for(int j = 0; j < 10; j++){
-            ProbabilityGridP1[i][j] = 0.5;
-        }
-    }
+    bool recentHit = false;
+    bool submarine_up = true;
+    bool destroyer_up = true;
+    bool battleship_up = true;
+    bool carrier_up = true;
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     while (SunkShipsP1 != 4 && SunkShipsP2 != 4)
     {
@@ -648,60 +650,63 @@ int main()
             free(move);
             free(coordinates);
             countRound++;
-        }
+        } 
+
+
+        //BOT TURN BOT TURN BOT TURN BOT TURN BOT TURN BOT TURN
+
+
         else if (countRound % 2 == 1)
         { // ALL FUNCTIONS SAME AS PLAYER 1
-            printf("It's the bot's turn %s\n\n");
+            printf("It's the bot's turn \n\n");
             // player 2 turn
             printArray(gridp1PUBLIC);
-            //    printf("Choose one of the following options: \n");
-            //    printf("1. Fire (Fire B3)\n");
-            //    printf("2. Radar Sweep (Radar B3) (%d left)\n", RadarSweepP2);
-            //    printf("3. SmokeScreen (Smoke B3) (%d left)\n", SmokeScreenP2);
-            //    printf("4. Artillery (Artillery B3) (%d left)\n", RecentSunkP2);
-            //    printf("5. Torpedo (Torpedo B/3) (%d left)\n", (RecentSunkP2 && SunkShipsP1 ==3));
 
             char *move = (char *)malloc(10 * sizeof(char));
             chooseMove(RadarSweepP2, SmokeScreenP2, RecentSunkP2, (RecentSunkP2 && SunkShipsP1 == 3), move);
-            
+            int row;
+            int column;
+            if (!recentHit){ // if we dont have a recent hit 
+                if (carrier_up){ // use parity until carrier is sunk
+                    srand(time(NULL));
+                    int index = rand()%parityRange;
+                    int coor = parityArray[index];
+                    row = coor/10;
+                    column = coor%10;
+                    parityArray[index] = parityArray[parityRange-1];
+                    parityArray[parityRange-1] = coor;
+                    parityRange--;
+                }
+                else { // use probability grid
+                    initializeProbability(probabilityGrid);
+                    calculateProbability(probabilityGrid,gridp1PUBLIC,submarine_up,destroyer_up,battleship_up,4);
+                    int max=0;
+                    for(int i = 0; i<10;i++){
+                        for(int j = 0; j<10;j++){
+                            if (probabilityGrid[i][j] > max){
+                                row = i;
+                                column = j;
+                                max = probabilityGrid[i][j];
+                            }
+                        }
+                    }
+                }
+            }
+            else { // we have recent hit
+
+            }
             switch (move[0])
             {
 
             case 'F':
             case 'f':
-            
-            if(!RecentSunkP2 && RecentHitBot){
-            
-            } else{
-
-            
-            int MaxIndex = GetMaxIndex(ProbabilityGridP1);       
-            int Number = IndexGrid[MaxIndex];  // Get value from maxIndex which contains row and column
-            int column = Number%10;
-            int row = Number/10;   
-            double MaxProbability = ProbabilityGridP1[row][column]; // get probability
-            if(MaxProbability <= 0.5){
-             int MaxIndex = Range % 100;
-             int Number = IndexGrid[MaxIndex];
-             int column = Number % 10;
-             int row = Number / 10;
-            }
-            
-
-
-            //All below is OLD 
                 hit = Fire(row, column, gridp1PUBLIC, gridp1SECRET, isHardDiff);
-                if (hit != '~'){
+                if (hit != '~')
                     printf("Hit\n");
-                    IfHit1(row, column, ProbabilityGridP1);
-                    RecentHitBot = true; }
-                else{
+                else
                     printf("Miss\n");
-                    IfMiss1(row, column, ProbabilityGridP1); 
-                    RecentHitBot = false; }
-                 
-                total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2); 
-                break; } 
+                total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2);
+                break;
             case 'R':
             case 'r':
                 if (RadarSweepP1 > 0)
@@ -820,14 +825,13 @@ int main()
             countRound++;
 
             free(move);
-            free(coordinates);
         }
 
         printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     }
 
     if (SunkShipsP1 == 4)
-        printf("%s wins.\n", "Bot");
+        printf("Bot wins.\n");
     else
         printf("%s wins.\n", name1);
     free(name1);
