@@ -4,9 +4,29 @@
 #include <stdbool.h>
 #include <ctype.h>
 
-
-
 // Given the number which represents the ship, another function calls this when a ship has been sunk
+
+
+int GetMaxIndex(double ProbGrid[10][10]){
+
+double MaxProbability = 0;
+int MaxIndex = 0;
+
+for(int i = 0; i<10;i++){
+    for(int j = 0; j<10; j++){
+        if(ProbGrid[i][j] > MaxProbability){
+            MaxProbability = ProbGrid[i][j];
+            MaxIndex = 0;
+            MaxIndex += 10 * i;
+            MaxIndex += j;
+        }
+    }   
+}
+
+return MaxIndex;
+
+}
+
 void printWhichShip(char a)
 {
     if (a == '2')
@@ -36,9 +56,10 @@ void printArray(char given[10][10])
     for (int i = 0; i < 10; i++)
     {
         int num = i + 1;
-        if(i!=9)
-        printf("%ld)  ", num);
-        else printf("%ld) ", num);
+        if (i != 9)
+            printf("%ld)  ", num);
+        else
+            printf("%ld) ", num);
         for (int j = 0; j < 10; j++)
         {
             printf("%c ", given[i][j]);
@@ -53,7 +74,41 @@ void printArray(char given[10][10])
     // then print every element in the row
 }
 
+void chooseMove(int RadarP2, int SmokeP2, int ArtilleryP2, int TorpedoP2, char *x)
+{
 
+    if (TorpedoP2 >= 1)
+    {
+        strcpy(x, "Torpedo");
+    }
+    if (ArtilleryP2 >= 1)
+    {
+        strcpy(x, "Artillery");
+    }
+    else
+    {
+        int randomValue;
+        srand(time(NULL));
+        randomValue = rand() % 100 + 1;
+
+        if (randomValue <= 50)
+        {
+            strcpy(x, "Fire");
+        }
+        else if (randomValue <= 75 && RadarP2 > 0)
+        {
+            strcpy(x, "Radar");
+        }
+        else if (randomValue > 75 && SmokeP2 > 0)
+        {
+            strcpy(x, "Smoke");
+        }
+        else
+        {
+            strcpy(x, "Fire");
+        }
+    }
+}
 int getCOLUMNindex(char ltr)
 {
 
@@ -65,7 +120,6 @@ int getCOLUMNindex(char ltr)
     return curr - '1'; // If we are doing the case of Turpedo, we might receive a row instead of a column which is a number
                        // if given a number, return the number - 1 to get the index
 }
-
 
 // This function checks if the placement of the ship is valid. If yes, place the ship using the a number based on number of places it takes
 bool CheckAndAdd(int row, int column, bool isHorizontal, int sizeOfShip, char given[10][10])
@@ -137,9 +191,10 @@ bool CheckAndAdd(int row, int column, bool isHorizontal, int sizeOfShip, char gi
 }
 
 // it calls check and add
-void placeShips(char grid[10][10], char *name, int size){
-bool check = false;
-do
+void placeShips(char grid[10][10], char *name, int size)
+{
+    bool check = false;
+    do
     {
         printArray(grid);
         printf("Please enter coordinates for the %s (%d cells) ", name, size);
@@ -147,10 +202,10 @@ do
         scanf("%14s", Coordinates);
         printf("\n");
         char temp = (int)Coordinates[1];
-        int row = temp - '0';                     // B3 --> SECOND INDEX IS THE ROW
-        int col = getCOLUMNindex(Coordinates[0]); // B3 --> FIRST INDEX IS THE COLUMN
-        bool isHorizontal = true;                 // initializing
-        if (Coordinates[3] == 'v' || Coordinates[3] == 'V'|| Coordinates[4] == 'V' || Coordinates[4] == 'v')   // B10, Vertical
+        int row = temp - '0';                                                                                 // B3 --> SECOND INDEX IS THE ROW
+        int col = getCOLUMNindex(Coordinates[0]);                                                             // B3 --> FIRST INDEX IS THE COLUMN
+        bool isHorizontal = true;                                                                             // initializing
+        if (Coordinates[3] == 'v' || Coordinates[3] == 'V' || Coordinates[4] == 'V' || Coordinates[4] == 'v') // B10, Vertical
         {
             isHorizontal = false; // vertical
         }
@@ -164,9 +219,46 @@ do
         }
         check = CheckAndAdd(row, col, isHorizontal, size, grid);
         free(Coordinates);
-    
+
     } while (check == false);
 }
+
+void placeShipsBot(char grid[10][10], char *name, int size)
+{
+    bool check = false;
+    srand(time(NULL));
+    do
+    {
+        char *Coordinates = (char *)malloc(15 * sizeof(char));
+
+        int row = rand() % 10 + 1; // random row from 0 --> 9
+        int col = rand() % 10;     // random column from 0 --> 9
+        bool isHorizontal = rand() % 2;
+        check = CheckAndAdd(row, col, isHorizontal, size, grid);
+        free(Coordinates);
+
+    } while (check == false);
+}
+
+
+void IfHit1(int row, int column, double PGrid[10][10]){
+int i = row;
+int j = column;
+PGrid[i+1][j] += 0.1;
+PGrid[i][j+1] += 0.1;
+PGrid[i-1][j] += 0.1;
+PGrid[i][j-1] += 0.1;
+}
+
+void IfMiss1(int row, int column, double PGrid[10][10]){
+int i = row;
+int j = column;
+PGrid[i+1][j] -= 0.1;
+PGrid[i][j+1] -= 0.1;
+PGrid[i-1][j] -= 0.1;
+PGrid[i][j-1] -= 0.1;
+}
+
 
 // fire function. returns what was hit. If the box aimed at is water --> miss. Else hit. We also change the private arrays.
 char Fire(int row, int column, char givenPublic[10][10], char givenSecret[10][10], bool isHardDiff)
@@ -211,7 +303,6 @@ char Fire(int row, int column, char givenPublic[10][10], char givenSecret[10][10
     */
 }
 
-
 // isSunk checks if the ship still exists
 boolean isSunk(char given, char Matrix[10][10])
 {
@@ -226,7 +317,6 @@ boolean isSunk(char given, char Matrix[10][10])
     return true; // couldn't find the piece --> the ship has sunk
 }
 
-
 // SmokeScreen uses an alternative array to implement the functionality
 // We will use && to check later if the area is a smoked area or a normal area
 // Fill smoked boxes with number 1
@@ -240,9 +330,8 @@ void SmokeScreen(int SmokeGrid[10][10], int row, int col)
     if (col != 9)
         (SmokeGrid[row][col + 1] = 1);
     if (row != 9 && col != 9)
-    SmokeGrid[row + 1][col + 1] = 1;
+        SmokeGrid[row + 1][col + 1] = 1;
 }
-
 
 // Uses && to check if the spots are hidden, if we find 1 ship and not hidden return true
 bool Radar(char grid[10][10], int SmokeGrid[10][10], int row, int col)
@@ -261,15 +350,17 @@ bool Radar(char grid[10][10], int SmokeGrid[10][10], int row, int col)
         if (grid[row][col + 1] != '~' && SmokeGrid[row][col + 1] != 1)
             return true;
     }
-    if (row != 9 && col != 9){
-        if (grid[row+1][col+1] != '~' && SmokeGrid[row + 1][col + 1] != 1)
-            return true; }
-            return false;
+    if (row != 9 && col != 9)
+    {
+        if (grid[row + 1][col + 1] != '~' && SmokeGrid[row + 1][col + 1] != 1)
+            return true;
+    }
+    return false;
     // check all b3 c3 b4 c4
     // if b9 or at the edge dont do it
 }
 
-// after each hit, check if a sink has been sunk. If a ship has been sunk, call the function to print which ship has been sunk. 
+// after each hit, check if a sink has been sunk. If a ship has been sunk, call the function to print which ship has been sunk.
 // change recentSunk to true if a ship has been sunk
 void total_fire(char hit, char grid[10][10], int *sunkShips, int *smokeScreen, bool *recentSunk)
 {
@@ -287,14 +378,15 @@ void total_fire(char hit, char grid[10][10], int *sunkShips, int *smokeScreen, b
             *recentSunk = false;
         }
     }
-    else{
+    else
+    {
         *recentSunk = false;
     }
 }
 int main()
 {
     srand(time(0)); // used for randomness
-    printf("Choose difficulty: (easy/ hard) == (0/1) ");
+    printf("Choose BattleShip difficulty: (easy/ hard) == (0/1) ");
     int num = 0;
     scanf("%ld", &num);
     bool isHardDiff = true;
@@ -302,16 +394,13 @@ int main()
         isHardDiff = false;
 
     printf("\n");
-    printf("Please enter name 1: ");
-    char *name1 = (char *)malloc(50 * sizeof(char)); 
-    scanf("%49s", name1);                            
+    printf("Please enter your name: ");
+    char *name1 = (char *)malloc(50 * sizeof(char));
+    scanf("%49s", name1);
     printf("\n");
-    printf("Please enter name 2: ");
-    char *name2 = (char *)malloc(50 * sizeof(char)); 
-    scanf("%49s", name2);
 
     int random = rand() % 2; // takes a random integer --> even == 0, odd == 1
-
+    // we will use it for the counter (counter = random)
     char gridp1SECRET[10][10];
     char gridp2SECRET[10][10];
     char gridp1PUBLIC[10][10];
@@ -321,23 +410,13 @@ int main()
     initializeArray(gridp2SECRET);
     initializeArray(gridp1PUBLIC);
     initializeArray(gridp2PUBLIC);
-// We use for each player a secret array and a public array
+    // We use for each player a secret array and a public array
 
-    
     // if random = 0, start player 1 and player 2 normally
     // if random = 1, swap names so that player 2 starts first
-    if (random == 1)
-    {
-        //
-        char *temp = (char *)malloc(50 * sizeof(char)); 
-        strcpy(temp, name1);                            
-        strcpy(name1, name2);                           
-        strcpy(name2, temp);                            
-        free(temp);
-    }
-    
+
     printf("\n\n\n\n\n");
-    printf("%s please start first by putting all your ships.\n", name1);
+    printf("%s please put all your ships.\n", name1);
     // place carrier
     placeShips(gridp1SECRET, "Carrier", 5);
     // place battleship
@@ -349,50 +428,60 @@ int main()
 
     // USE DO WHILE LOOP : DO .... WHILE (BOOLEAN CURR == FALSE, DONT WORRY ABOUT ERROR , ERROR IS WRITTEN IN FUNCTION)
 
-
-
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    printf("%s please put all your ships.\n", name2);
     // place carrier
-    placeShips(gridp2SECRET, "Carrier", 5);
+    placeShipsBot(gridp2SECRET, "Carrier", 5);
     // place battleship
-    placeShips(gridp2SECRET, "Battleship", 4);
+    placeShipsBot(gridp2SECRET, "Battleship", 4);
     // put destroyer
-    placeShips(gridp2SECRET, "Destroyer", 3);
+    placeShipsBot(gridp2SECRET, "Destroyer", 3);
     // put submarine
-    placeShips(gridp2SECRET, "Sumbarine", 2);
+    placeShipsBot(gridp2SECRET, "Sumbarine", 2);
 
-    
     // place ships for both players by using placeShips function
-
-    
 
     int SunkShipsP1 = 0;
     int SunkShipsP2 = 0;
 
-    int countRound = 0; // helps in switching between turns (even = player1, odd = player 2)
-    char hit = '0';     // we will have a variable that receives what got hit (either water if no target or A NUMBER IF PART OF A SHIP GOT HIT)
-    int RadarSweepP1 = 3; // Count how much radar sweeps left
+    int countRound = random; // helps in switching between turns (even = player1, odd = player 2)
+    char hit = '0';          // we will have a variable that receives what got hit (either water if no target or A NUMBER IF PART OF A SHIP GOT HIT)
+    int RadarSweepP1 = 3;    // Count how much radar sweeps left
     int RadarSweepP2 = 3;
     int SmokeScreenP1 = 0; // Count how much smokescreens left
     int SmokeScreenP2 = 0;
     int SmokeGridP1[10][10]; // if box != 1 no smoke, box = 1 smoke
     int SmokeGridP2[10][10];
-    for(int i = 0; i< 10; i++){
-        for(int j = 0; j<10 ; j++){
-            SmokeGridP1[i][j] =0;
+    for (int i = 0; i < 10; i++)
+    {
+        for (int j = 0; j < 10; j++)
+        {
+            SmokeGridP1[i][j] = 0;
             SmokeGridP2[i][j] = 0;
         }
     }
     // initialize smokegrids
     bool RecentSunkP1 = false;
     bool RecentSunkP2 = false;
-      printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+    bool RecentHitBot = false;
+    int IndexGrid[100];
+    for(int i = 0; i<100; i++){
+        IndexGrid[i] = i;
+    }
+
+    int Range = 100;
+
+    double ProbabilityGridP1[10][10];
+    for(int i = 0; i<10; i++){
+        for(int j = 0; j < 10; j++){
+            ProbabilityGridP1[i][j] = 0.5;
+        }
+    }
+    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     while (SunkShipsP1 != 4 && SunkShipsP2 != 4)
     {
         if (countRound % 2 == 0)
         {
-            printf("It's your turn %s\n\n" , name1);
+            printf("It's your turn %s\n\n", name1);
             // player 1 turn
             printArray(gridp2PUBLIC);
             printf("Choose one of the following options: \n");
@@ -422,7 +511,7 @@ int main()
             {
                 row = 9; // CASE IF ROW = 10
             }
-           else if (coordinates[1] >= '1' && coordinates[1] <= '9' && coordinates[2] >= '1' && coordinates[2] <= '9')
+            else if (coordinates[1] >= '1' && coordinates[1] <= '9' && coordinates[2] >= '1' && coordinates[2] <= '9')
             {
                 row = 20; // give error
             }
@@ -505,7 +594,8 @@ int main()
                         printf("hit\n");
                     else
                         printf("miss\n");
-                        if(SunkShipsP2 != isSunkCurrent) RecentSunkP1 = true;
+                    if (SunkShipsP2 != isSunkCurrent)
+                        RecentSunkP1 = true;
                 }
                 else
                 {
@@ -531,8 +621,8 @@ int main()
                     }
                     else
                     {
-                        if(column == 0 && coordinates[1] == '0')
-                        column = 9;
+                        if (column == 0 && coordinates[1] == '0')
+                            column = 9;
                         for (int i = 0; i < 10; i++)
                         {
                             hit = Fire(column, i, gridp2PUBLIC, gridp2SECRET, isHardDiff);
@@ -551,7 +641,7 @@ int main()
                     printf("You don't meet the conditions to do a torpedo. You lost your turn.\n");
                 }
                 break;
-               // in torpedo use a for loop to either fire on an entire row or column
+                // in torpedo use a for loop to either fire on an entire row or column
             default:
                 break;
             }
@@ -560,53 +650,58 @@ int main()
             countRound++;
         }
         else if (countRound % 2 == 1)
-        {   // ALL FUNCTIONS SAME AS PLAYER 1
-            printf("It's your turn %s\n\n", name2);    
+        { // ALL FUNCTIONS SAME AS PLAYER 1
+            printf("It's the bot's turn %s\n\n");
             // player 2 turn
             printArray(gridp1PUBLIC);
-            printf("Choose one of the following options: \n");
-            printf("1. Fire (Fire B3)\n");
-            printf("2. Radar Sweep (Radar B3) (%d left)\n", RadarSweepP2);
-            printf("3. SmokeScreen (Smoke B3) (%d left)\n", SmokeScreenP2);
-            printf("4. Artillery (Artillery B3) (%d left)\n", RecentSunkP2);
-            printf("5. Torpedo (Torpedo B/3) (%d left)\n", (RecentSunkP2 && SunkShipsP1 ==3));
+            //    printf("Choose one of the following options: \n");
+            //    printf("1. Fire (Fire B3)\n");
+            //    printf("2. Radar Sweep (Radar B3) (%d left)\n", RadarSweepP2);
+            //    printf("3. SmokeScreen (Smoke B3) (%d left)\n", SmokeScreenP2);
+            //    printf("4. Artillery (Artillery B3) (%d left)\n", RecentSunkP2);
+            //    printf("5. Torpedo (Torpedo B/3) (%d left)\n", (RecentSunkP2 && SunkShipsP1 ==3));
 
             char *move = (char *)malloc(10 * sizeof(char));
-            char *coordinates = (char *)malloc(10 * sizeof(char));
-            scanf("%s", move);
-            scanf("%s", coordinates);
-            char col = toupper(coordinates[0]);
-            boolean isColLetter;
-            if (col >= 'A' && col <= 'Z')
-                isColLetter = true;
-            else
-                isColLetter = false;
-            //        ltr = toupper(ltr);
-            // int curr = (int)ltr;
-
-            // if (ltr >= 'A' && ltr <= 'Z')
-            int column = getCOLUMNindex(coordinates[0]); // COLUMN INDEX OF THE LETTER
-            int row = coordinates[1] - '1';              // incase of t garbage values AND ASCII
-            if (coordinates[2] == '0' && row == 0)
-            {
-                row = 9; // CASE IF ROW = 10
-            }
-           else if (coordinates[1] >= '1' && coordinates[1] <= '9' && coordinates[2] >= '1' && coordinates[2] <= '9')
-            {
-                row = 20; // give error
-            }
+            chooseMove(RadarSweepP2, SmokeScreenP2, RecentSunkP2, (RecentSunkP2 && SunkShipsP1 == 3), move);
+            
             switch (move[0])
             {
 
             case 'F':
             case 'f':
+            
+            if(!RecentSunkP2 && RecentHitBot){
+            
+            } else{
+
+            
+            int MaxIndex = GetMaxIndex(ProbabilityGridP1);       
+            int Number = IndexGrid[MaxIndex];  // Get value from maxIndex which contains row and column
+            int column = Number%10;
+            int row = Number/10;   
+            double MaxProbability = ProbabilityGridP1[row][column]; // get probability
+            if(MaxProbability <= 0.5){
+             int MaxIndex = Range % 100;
+             int Number = IndexGrid[MaxIndex];
+             int column = Number % 10;
+             int row = Number / 10;
+            }
+            
+
+
+            //All below is OLD 
                 hit = Fire(row, column, gridp1PUBLIC, gridp1SECRET, isHardDiff);
-                if (hit != '~')
+                if (hit != '~'){
                     printf("Hit\n");
-                else
+                    IfHit1(row, column, ProbabilityGridP1);
+                    RecentHitBot = true; }
+                else{
                     printf("Miss\n");
-                total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2);
-                break;
+                    IfMiss1(row, column, ProbabilityGridP1); 
+                    RecentHitBot = false; }
+                 
+                total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2); 
+                break; } 
             case 'R':
             case 'r':
                 if (RadarSweepP1 > 0)
@@ -672,7 +767,8 @@ int main()
                     else
                         printf("miss\n");
 
-                        if(SunkShipsP1 != isSunkCurrent) RecentSunkP2 = true;
+                    if (SunkShipsP1 != isSunkCurrent)
+                        RecentSunkP2 = true;
                 }
                 else
                 {
@@ -680,7 +776,7 @@ int main()
                 }
                 break;
 
-            case 'T': 
+            case 'T':
             case 't':
                 if (SunkShipsP1 == 3 && RecentSunkP2)
                 {
@@ -697,8 +793,8 @@ int main()
                     }
                     else
                     {
-                        if(column == 0 && coordinates[1] == '0')
-                        column = 9;
+                        if (column == 0 && coordinates[1] == '0')
+                            column = 9;
                         for (int i = 0; i < 10; i++)
                         {
                             hit = Fire(column, i, gridp1PUBLIC, gridp1SECRET, isHardDiff);
@@ -711,7 +807,6 @@ int main()
                         printf("Hit\n");
                     else
                         printf("Miss\n");
-
                 }
                 else
                 {
@@ -727,20 +822,24 @@ int main()
             free(move);
             free(coordinates);
         }
-    
-    
-    printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    
-    
-    
-    
+
+        printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     }
 
-if(SunkShipsP1 == 4) printf("%s wins.\n", name2);
-else printf("%s wins.\n", name1);
-free(name1);
-free(name2);
-return 0;
-
+    if (SunkShipsP1 == 4)
+        printf("%s wins.\n", "Bot");
+    else
+        printf("%s wins.\n", name1);
+    free(name1);
     
+    return 0;
 }
+
+
+
+
+
+
+
+// if hit -> go up if present or go down if present or go left or goo right and keep on going where present
+//
