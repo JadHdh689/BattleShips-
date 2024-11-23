@@ -6,6 +6,30 @@
 
 // Given the number which represents the ship, another function calls this when a ship has been sunk
 
+void printWhichShipBot(char a, bool *Submarine, bool *Destroyer, bool *BattleShip, bool *Carrier)
+{
+    if (a == '2')
+    {
+        printf("A submarine has been sunk\n");
+        *Submarine = false;
+    }
+    if (a == '3')
+    {
+        printf("A destroyer has been sunk\n");
+        *Destroyer = false;
+    }
+    if (a == '4')
+    {
+        printf("A battleship has been sunk\n");
+        *BattleShip = false;
+    }
+    if (a == '5')
+    {
+        printf("A carrier has been sunk\n");
+        *Carrier = false;
+    }
+}
+
 void printWhichShip(char a)
 {
     if (a == '2')
@@ -353,6 +377,29 @@ void total_fire(char hit, char grid[10][10], int *sunkShips, int *smokeScreen, b
         *recentSunk = false;
     }
 }
+
+void total_fireBOT(char hit, char grid[10][10], int *sunkShips, int *smokeScreen, bool *recentSunk, bool *Submarine, bool *Destroyer, bool *BattleShip, bool *Carrier)
+{
+    if (hit != '~')
+    {
+        if (isSunk(hit, grid))
+        {
+            (*sunkShips)++;
+            (*smokeScreen)++;
+            *recentSunk = true;
+            printWhichShipBot(hit, Submarine, Destroyer, BattleShip, Carrier);
+        }
+        else
+        {
+            *recentSunk = false;
+        }
+    }
+    else
+    {
+        *recentSunk = false;
+    }
+}
+
 // always call this function with shipSize = 4
 void calculateProbability(int probabilityGrid[10][10], char grid[10][10], bool submarine_up, bool destoryer_up, bool battleship_up, int ship_size)
 {
@@ -842,56 +889,58 @@ int main()
                         recent_row = row;
                         recent_column = column;
                     }
-                    else if(!recentHit2)
+                    else if (!recentHit2)
                     {
                         recentHit2 = true;
                         current_ROW = row;
                         current_COLUMN = column;
 
-                        if(current_ROW > recent_row){
-                        down = true;
-                        up = false;
-                        right = false;
-                        left = false;
+                        if (current_ROW > recent_row)
+                        {
+                            down = true;
+                            up = false;
+                            right = false;
+                            left = false;
                         }
-                        else if(current_ROW < recent_row){
-                        down = false;
-                        up = true;
-                        right = false;
-                        left = false;
-
-                        } 
-                        else if(current_COLUMN > recent_column){
-                        down = false;
-                        up = false;
-                        right = true;
-                        left = false;
-                        } else{
+                        else if (current_ROW < recent_row)
+                        {
+                            down = false;
+                            up = true;
+                            right = false;
+                            left = false;
+                        }
+                        else if (current_COLUMN > recent_column)
+                        {
+                            down = false;
+                            up = false;
+                            right = true;
+                            left = false;
+                        }
+                        else
+                        {
                             down = false;
                             up = false;
                             right = false;
                             left = true;
                         }
 
-
-
                         // we hit the row and the column
                         // we want to compare current row and column with recent_row and recent_column
                         // then decide bool left, or bool right , or bool up , or bool down
                         // we should add to the conditions above that make the coordinates a new if(recentHit2)....
-                    } else{ // recentHit2 == true
-                    current_ROW = row;
-                    current_COLUMN = column;
                     }
-
+                    else
+                    { // recentHit2 == true
+                        current_ROW = row;
+                        current_COLUMN = column;
+                    }
                 }
                 else
                 {
                     printf("Miss\n");
                     recentHit2 = false;
-                    
                 }
-                total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2);
+                total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up);
                 if (RecentSunkP2)
                 {
                     recentHit = false; // stop recentHit
@@ -900,7 +949,7 @@ int main()
                 break;
             case 'R':
             case 'r':
-                if (RadarSweepP1 > 0)
+                if (RadarSweepP2 > 0)
                 {
                     bool a = Radar(gridp1SECRET, SmokeGridP1, row, column);
                     if (a)
@@ -923,7 +972,28 @@ int main()
             case 's':
                 if (SmokeScreenP2 > 0)
                 {
-                    SmokeScreen(SmokeGridP2, row, column);
+                    int row_SMOKE = 0;
+                    int column_SMOKE = 0;
+                    while(true){
+                    bool found = false;
+                    for (row_SMOKE = row_SMOKE; row_SMOKE < 10; row_SMOKE++)
+                    {
+                        for (column_SMOKE = column_SMOKE; column_SMOKE < 10; column_SMOKE++)
+                        {
+                            if (gridp2SECRET[row_SMOKE][column_SMOKE] != '~')
+                            {
+                                
+                                row_SMOKE = i;
+                                column_SMOKE = j;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found)
+                    break;
+                    } }
+
+                    SmokeScreen(SmokeGridP2, row_SMOKE, column_SMOKE);
                     SmokeScreenP2--;
                 }
                 else
@@ -941,22 +1011,21 @@ int main()
                     hit = Fire(row, column, gridp1PUBLIC, gridp1SECRET, isHardDiff);
                     if (hit != '~')
                         did_hit = true;
-                    total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2);
+                    total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up);
 
                     hit = Fire(row + 1, column, gridp1PUBLIC, gridp1SECRET, isHardDiff);
                     if (hit != '~')
                         did_hit = true;
-                    total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2);
+                    total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up);
 
                     hit = Fire(row, column + 1, gridp1PUBLIC, gridp1SECRET, isHardDiff);
                     if (hit != '~')
                         did_hit = true;
-                    total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2);
-
+                    total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up);
                     hit = Fire(row + 1, column + 1, gridp1PUBLIC, gridp1SECRET, isHardDiff);
                     if (hit != '~')
                         did_hit = true;
-                    total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2);
+                    total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up);
 
                     if (did_hit)
                         printf("hit\n");
@@ -984,7 +1053,7 @@ int main()
                             hit = Fire(i, column, gridp1PUBLIC, gridp1SECRET, isHardDiff);
                             if (hit != '~')
                                 did_hit = true;
-                            total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2);
+                            total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up);
                         }
                     }
                     else
@@ -996,7 +1065,7 @@ int main()
                             hit = Fire(column, i, gridp1PUBLIC, gridp1SECRET, isHardDiff);
                             if (hit != '~')
                                 did_hit = true;
-                            total_fire(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2);
+                            total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up);
                         }
                     }
                     if (did_hit)
