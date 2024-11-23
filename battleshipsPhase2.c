@@ -88,7 +88,7 @@ void printArray(char given[10][10])
     // then print every element in the row
 }
 
-void chooseMove(int RadarP2, int SmokeP2, int ArtilleryP2, int TorpedoP2, char *x)
+void chooseMove(int RadarP2, int SmokeP2, int ArtilleryP2, int TorpedoP2, char *x, int RadarSweepP1, bool recentHit)
 {
 
     if (TorpedoP2 >= 1)
@@ -109,11 +109,11 @@ void chooseMove(int RadarP2, int SmokeP2, int ArtilleryP2, int TorpedoP2, char *
         {
             strcpy(x, "Fire");
         }
-        else if (randomValue <= 75 && RadarP2 > 0)
+        else if (randomValue <= 75 && RadarP2 > 0 && !recentHit)
         {
             strcpy(x, "Radar");
         }
-        else if (randomValue > 75 && SmokeP2 > 0)
+        else if (randomValue > 75 && SmokeP2 > 0 && RadarSweepP1 > 0)
         {
             strcpy(x, "Smoke");
         }
@@ -401,28 +401,32 @@ void total_fireBOT(char hit, char grid[10][10], int *sunkShips, int *smokeScreen
 }
 
 // always call this function with shipSize = 4
-void calculateProbability(int probabilityGrid[10][10], char grid[10][10], bool submarine_up, bool destoryer_up, bool battleship_up, int ship_size)
+void calculateProbability(int probabilityGrid[10][10], char grid[10][10], bool submarine_up, bool destoryer_up, bool battleship_up, bool carrier_up, int ship_size)
 {
-    if (ship_size == 4 && battleship_up || ship_size == 3 && destoryer_up || ship_size == 2 && submarine_up)
-    { // recursive call present
+    if (ship_size == 5 && carrier_up || ship_size == 4 && battleship_up || ship_size == 3 && destoryer_up || ship_size == 2 && submarine_up)
+    {
         for (int row = 0; row < 10; row++)
         {
             for (int column = 0; column <= 10 - ship_size; column++)
             {
-                if (grid[row][column + 3] != '~' && ship_size >= 4) // grid is the public one, if it is not water , it is a hit
-                    column += 3;                                    // if hit skip
+                if (grid[row][column + 4] != '~' && ship_size >= 5)
+                    column += 4;
+                else if (grid[row][column + 3] != '~' && ship_size >= 4)
+                    column += 3;
                 else if (grid[row][column + 2] != '~' && ship_size >= 3)
                     column += 2;
                 else if (grid[row][column + 1] != '~')
                     column++;
                 else if (grid[row][column] == '~')
-                { // after skipping all needed, if we land at water now increment
+                {
                     probabilityGrid[row][column]++;
-                    probabilityGrid[row][column + 1]++; // min ship = 2 spaces
+                    probabilityGrid[row][column + 1]++;
                     if (ship_size >= 3)
                         probabilityGrid[row][column + 2]++;
                     if (ship_size >= 4)
                         probabilityGrid[row][column + 3]++;
+                    if (ship_size >= 5)
+                        probabilityGrid[row][column + 4]++;
                 }
             }
         }
@@ -430,7 +434,9 @@ void calculateProbability(int probabilityGrid[10][10], char grid[10][10], bool s
         {
             for (int row = 0; row <= 10 - ship_size; row++)
             {
-                if (grid[row + 3][column] != '~' && ship_size >= 4)
+                if (grid[row + 4][column] != '~' && ship_size >= 5)
+                    row += 4;
+                else if (grid[row + 3][column] != '~' && ship_size >= 4)
                     row += 3;
                 else if (grid[row + 2][column] != '~' && ship_size >= 3)
                     row += 2;
@@ -444,14 +450,17 @@ void calculateProbability(int probabilityGrid[10][10], char grid[10][10], bool s
                         probabilityGrid[row + 2][column]++;
                     if (ship_size >= 4)
                         probabilityGrid[row + 3][column]++;
+                    if (ship_size >= 5)
+                        probabilityGrid[row + 4][column]++;
                 }
             }
         }
     }
-    if (ship_size == 4)
+    if (ship_size == 5)
     {
-        calculateProbability(probabilityGrid, grid, submarine_up, destoryer_up, battleship_up, ship_size - 1);
-        calculateProbability(probabilityGrid, grid, submarine_up, destoryer_up, battleship_up, ship_size - 2);
+        calculateProbability(probabilityGrid, grid, submarine_up, destoryer_up, battleship_up, carrier_up, ship_size - 1);
+        calculateProbability(probabilityGrid, grid, submarine_up, destoryer_up, battleship_up, carrier_up, ship_size - 2);
+        calculateProbability(probabilityGrid, grid, submarine_up, destoryer_up, battleship_up, carrier_up, ship_size - 3);
     }
 }
 int main()
@@ -735,7 +744,7 @@ int main()
             printArray(gridp1PUBLIC);
 
             char *move = (char *)malloc(10 * sizeof(char));
-            chooseMove(RadarSweepP2, SmokeScreenP2, RecentSunkP2, (RecentSunkP2 && SunkShipsP1 == 3), move);
+            chooseMove(RadarSweepP2, SmokeScreenP2, RecentSunkP2, (RecentSunkP2 && SunkShipsP1 == 3), move, RadarSweepP1, recentHit);
             int row;
             int column;
             if (!recentHit)
@@ -754,7 +763,7 @@ int main()
                 else
                 { // use probability grid
                     initializeProbability(probabilityGrid);
-                    calculateProbability(probabilityGrid, gridp1PUBLIC, submarine_up, destroyer_up, battleship_up, 4);
+                    calculateProbability(probabilityGrid, gridp1PUBLIC, submarine_up, destroyer_up, battleship_up, carrier_up, 5);
                     int max = 0;
                     for (int i = 0; i < 10; i++)
                     {
@@ -974,24 +983,26 @@ int main()
                 {
                     int row_SMOKE = 0;
                     int column_SMOKE = 0;
-                    while(true){
-                    bool found = false;
-                    for (row_SMOKE = row_SMOKE; row_SMOKE < 10; row_SMOKE++)
+                    while (true)
                     {
-                        for (column_SMOKE = column_SMOKE; column_SMOKE < 10; column_SMOKE++)
+                        bool found = false;
+                        for (int i = 0; i < 10; i++)
                         {
-                            if (gridp2SECRET[row_SMOKE][column_SMOKE] != '~')
+                            for (int j = 0; j < 10; j++)
                             {
-                                
-                                row_SMOKE = i;
-                                column_SMOKE = j;
-                                found = true;
-                                break;
+                                if (gridp2SECRET[i][j] != '~')
+                                {
+
+                                    row_SMOKE = i;
+                                    column_SMOKE = j;
+                                    found = true;
+                                    break;
+                                }
                             }
+                            if (found)
+                                break;
                         }
-                        if (found)
-                    break;
-                    } }
+                    }
 
                     SmokeScreen(SmokeGridP2, row_SMOKE, column_SMOKE);
                     SmokeScreenP2--;
@@ -1046,32 +1057,70 @@ int main()
                 if (SunkShipsP1 == 3 && RecentSunkP2)
                 {
                     bool did_hit = false;
-                    if (isColLetter)
+                    bool torpedoRow = false;
+                    bool torpedoColumn = false;
+                    initializeProbability(probabilityGrid);
+                    calculateProbability(probabilityGrid, gridp1PUBLIC, submarine_up, destroyer_up, battleship_up, carrier_up, 5);
+
+                    int CoordinateShoot = 0;
+                    int max = 0;
+                    for (int i = 0; i < 10; i++)
+                    {
+                        int currentSum = 0;
+                        for (int j = 0; j < 10; j++)
+                        {
+                            currentSum += probabilityGrid[i][j];
+                        }
+                        if (currentSum > max)
+                        {
+                            max = currentSum;
+                            torpedoRow = true;
+                            torpedoColumn = false;
+                            CoordinateShoot = i;
+                        }
+                    }
+
+                    for (int i = 0; i < 10; i++)
+                    {
+                        int currentSum = 0;
+                        for (int j = 0; j < 10; j++)
+                        {
+                            currentSum += probabilityGrid[j][i];
+                        }
+                        if (currentSum > max)
+                        {
+                            max = currentSum;
+                            torpedoColumn = true;
+                            torpedoRow = false;
+                            CoordinateShoot = i;
+                        }
+                    }
+
+                    if (torpedoRow)
                     {
                         for (int i = 0; i < 10; i++)
                         {
-                            hit = Fire(i, column, gridp1PUBLIC, gridp1SECRET, isHardDiff);
+                            hit = Fire(CoordinateShoot, i, gridp1PUBLIC, gridp1SECRET, isHardDiff);
                             if (hit != '~')
+                            {
                                 did_hit = true;
+                            }
                             total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up);
                         }
                     }
+
                     else
                     {
-                        if (column == 0 && coordinates[1] == '0')
-                            column = 9;
                         for (int i = 0; i < 10; i++)
                         {
-                            hit = Fire(column, i, gridp1PUBLIC, gridp1SECRET, isHardDiff);
+                            hit = Fire(i, CoordinateShoot, gridp1PUBLIC, gridp1SECRET, isHardDiff);
                             if (hit != '~')
+                            {
                                 did_hit = true;
+                            }
                             total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up);
                         }
                     }
-                    if (did_hit)
-                        printf("Hit\n");
-                    else
-                        printf("Miss\n");
                 }
                 else
                 {
