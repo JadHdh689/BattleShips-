@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <time.h>
 
 // Given the number which represents the ship, another function calls this when a ship has been sunk
 
@@ -561,6 +562,7 @@ int main()
     bool right = false;
     bool up = false;
     bool down = false;
+    
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     while (SunkShipsP1 != 4 && SunkShipsP2 != 4)
     {
@@ -782,7 +784,8 @@ int main()
 
             else if ( recentHit && recentHit2)
             {
-
+              int oldRow = row;
+              int oldCol = column;
                 if (left)
                 {
                     if (current_COLUMN - 1 >= 0)
@@ -809,10 +812,17 @@ int main()
                         row = current_ROW + 1;
                     column = current_COLUMN;
                 }
+
+                if(oldRow == row && oldCol == column){
+                    recentHit2 = false;
+                }
             }
 
             else
              { // we have recent hit
+
+                int oldRow = row;
+                int oldCol = column;
                 initializeProbability(probabilityGrid);
                 calculateProbability(probabilityGrid, gridp1PUBLIC, submarine_up, destroyer_up, battleship_up, carrier_up, 5);
                 int maxValue = 0;
@@ -846,6 +856,10 @@ int main()
                         row = recent_row;
                         column = recent_column + 1;
                     }
+
+                    if(oldRow == row && oldCol == column){
+                        recentHit = false;
+                    } 
                 }
                 
         
