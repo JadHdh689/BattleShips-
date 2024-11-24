@@ -816,7 +816,7 @@ int main()
                 initializeProbability(probabilityGrid);
                 calculateProbability(probabilityGrid, gridp1PUBLIC, submarine_up, destroyer_up, battleship_up, carrier_up, 5);
                 int maxValue = 0;
-                    if (recent_row - 1 >= 0 && probabilityGrid[recent_row - 1][recent_column] > maxValue)
+                    if (recent_row - 1 >= 0 && probabilityGrid[recent_row - 1][recent_column] >= maxValue && gridp1PUBLIC[recent_row - 1][recent_column] == '~')
                     {
                         maxValue = probabilityGrid[recent_row - 1][recent_column];
                         row = recent_row - 1;
@@ -824,7 +824,7 @@ int main()
                     }
 
                     // Check down
-                   if (recent_row + 1 < 10 && probabilityGrid[recent_row + 1][recent_column] > maxValue)
+                   if (recent_row + 1 < 10 && probabilityGrid[recent_row + 1][recent_column] >= maxValue && gridp1PUBLIC[recent_row + 1][recent_column] == '~')
                     {
                         maxValue = probabilityGrid[recent_row + 1][recent_column];
                         row = recent_row + 1;
@@ -832,7 +832,7 @@ int main()
                     }
 
                     // Check left
-                    if (recent_column - 1 >= 0 && probabilityGrid[recent_row][recent_column - 1] > maxValue)
+                    if (recent_column - 1 >= 0 && probabilityGrid[recent_row][recent_column - 1] >= maxValue && gridp1PUBLIC[recent_row][recent_column -1] == '~')
                     {
                         maxValue = probabilityGrid[recent_row][recent_column - 1];
                         row = recent_row;
@@ -840,7 +840,7 @@ int main()
                     }
 
                     // Check right
-                    if (recent_column + 1 < 10 && probabilityGrid[recent_row][recent_column + 1] > maxValue)
+                    if (recent_column + 1 < 10 && probabilityGrid[recent_row][recent_column + 1] >= maxValue && gridp1PUBLIC[recent_row][recent_column + 1] == '~')
                     {
                         maxValue = probabilityGrid[recent_row][recent_column + 1];
                         row = recent_row;
@@ -859,7 +859,7 @@ int main()
                 // keep going up until recentHit goes away by the recentSunk condition....
             
             
-            printf("Row = %d , Column = %d \n", row, column);
+            printf("Row = %d , Column = %d \n", row + 1, column + 1);
             printf("Move of bot is: %s \n", move);
             switch (move[0])
             {
