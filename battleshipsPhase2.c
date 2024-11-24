@@ -780,7 +780,7 @@ int main()
                 }
             } // if !recenthit GET coordinates for fire (row and column) either through carrier or prob grid
 
-            else if (recentHit2 == true)
+            else if ( recentHit && recentHit2)
             {
 
                 if (left)
@@ -812,12 +812,10 @@ int main()
             }
 
             else
-            { // we have recent hit
-
+             { // we have recent hit
+                initializeProbability(probabilityGrid);
+                calculateProbability(probabilityGrid, gridp1PUBLIC, submarine_up, destroyer_up, battleship_up, carrier_up, 5);
                 int maxValue = 0;
-                if (!vertical && !horizontal)
-                { // we don't know yet
-                    // Check up
                     if (recent_row - 1 >= 0 && probabilityGrid[recent_row - 1][recent_column] > maxValue)
                     {
                         maxValue = probabilityGrid[recent_row - 1][recent_column];
@@ -826,7 +824,7 @@ int main()
                     }
 
                     // Check down
-                    if (recent_row + 1 < 10 && probabilityGrid[recent_row + 1][recent_column] > maxValue)
+                   if (recent_row + 1 < 10 && probabilityGrid[recent_row + 1][recent_column] > maxValue)
                     {
                         maxValue = probabilityGrid[recent_row + 1][recent_column];
                         row = recent_row + 1;
@@ -849,32 +847,9 @@ int main()
                         column = recent_column + 1;
                     }
                 }
-                else if (vertical)
-                {
-                    if (probabilityGrid[recent_row + 1][recent_column] >= probabilityGrid[recent_row - 1][recent_column] && recent_row + 1 < 10)
-                    {
-                        row = recent_row + 1;
-                        column = recent_column;
-                    }
-                    else
-                    {
-                        row = recent_row - 1;
-                        column = recent_column;
-                    }
-                }
-                else if (horizontal)
-                {
-                    if (probabilityGrid[recent_row][recent_column + 1] >= probabilityGrid[recent_row - 1][recent_column] && recent_column + 1 < 10)
-                    {
-                        row = recent_row;
-                        column = recent_column + 1;
-                    }
-                    else
-                    {
-                        row = recent_row;
-                        column = recent_column - 1;
-                    }
-                }
+                
+        
+                
 
                 //  recentHit2 --> keep going that side  --> recentSunk recentHit automatically goes
                 //  4 booleans  --> up , left , down , right
@@ -882,7 +857,10 @@ int main()
                 // while having recentHit and hitting another hit
                 // the other hit should decide the bool (up , left, down, right)
                 // keep going up until recentHit goes away by the recentSunk condition....
-            }
+            
+            
+            printf("Row = %d , Column = %d \n", row, column);
+            printf("Move of bot is: %s \n", move);
             switch (move[0])
             {
 
@@ -898,7 +876,7 @@ int main()
                         recent_row = row;
                         recent_column = column;
                     }
-                    else if (!recentHit2)
+                    else if (recentHit && !recentHit2)
                     {
                         recentHit2 = true;
                         current_ROW = row;
@@ -948,6 +926,10 @@ int main()
                 {
                     printf("Miss\n");
                     recentHit2 = false;
+                    up = false;
+                    down = false;
+                    left = false;
+                    right = false;
                 }
                 total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up);
                 if (RecentSunkP2)
@@ -964,6 +946,7 @@ int main()
                     if (a)
                     {
                         printf("Enemy ships found.\n");
+
                     }
                     else
                     {
@@ -983,8 +966,6 @@ int main()
                 {
                     int row_SMOKE = 0;
                     int column_SMOKE = 0;
-                    while (true)
-                    {
                         bool found = false;
                         for (int i = 0; i < 10; i++)
                         {
@@ -1002,7 +983,7 @@ int main()
                             if (found)
                                 break;
                         }
-                    }
+                    
 
                     SmokeScreen(SmokeGridP2, row_SMOKE, column_SMOKE);
                     SmokeScreenP2--;
@@ -1132,11 +1113,12 @@ int main()
                 break;
             }
             countRound++;
-
+            
             free(move);
+            
         }
 
-        printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+        printf("\n\n\n\n\n");
     }
 
     if (SunkShipsP1 == 4)
