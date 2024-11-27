@@ -1100,6 +1100,10 @@ if (RadarHit)
                     {
                         printf("No enemy ships found.\n");
                         RadarHit = false;
+                        gridp1PUBLIC[row][column] = 'o';
+                        gridp1PUBLIC[row+1][column] = 'o';
+                        gridp1PUBLIC[row][column+1] = 'o';
+                        gridp1PUBLIC[row+1][column+1] = 'o';
                     }
                     RadarSweepP2--;
                 }
