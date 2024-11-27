@@ -205,6 +205,78 @@ bool CheckAndAdd(int row, int column, bool isHorizontal, int sizeOfShip, char gi
     return true;
 }
 
+
+bool CheckAndAddBot(int row, int column, bool isHorizontal, int sizeOfShip, char given[10][10])
+{
+
+    row = row - 1;
+    if (row > 9 || column > 9 || row < 0 || column < 0) // OUT OF BOUNDS
+    {
+        
+        return false; // false = error
+    }
+    if (isHorizontal)
+    {
+        if (10 - column < sizeOfShip) // CHECK IF EXTENDS OUTSIDE
+        {
+            
+            return false;
+        }
+    }
+    else
+    {
+        if (10 - row < sizeOfShip)
+        {
+            
+            return false;
+        }
+    }
+
+    if (isHorizontal)
+    {
+        // stay at row , ONLY CHANGE COLUMNS
+
+        for (int i = column; i < sizeOfShip + column; i++)
+        {
+            if (given[row][i] != '~') // EITHER HAS A 2, 3, 4, 5 ( CHAR )
+            {
+                
+                return false;
+            }
+        }
+
+        for (int i = column; i < sizeOfShip + column; i++)
+        {
+
+            given[row][i] = sizeOfShip + '0';
+        }
+    }
+    else
+    {
+        // stay at column , ONLY CHANGE ROWS
+
+        for (int i = row; i < row + sizeOfShip; i++)
+        {
+            if (given[i][column] != '~')
+            {
+                
+
+                return false;
+            }
+        }
+
+        for (int i = row; i < row + sizeOfShip; i++)
+        {
+
+            given[i][column] = sizeOfShip + '0';
+        }
+    }
+    return true;
+}
+
+
+
+
 // it calls check and add
 void placeShips(char grid[10][10], char *name, int size)
 {
@@ -249,7 +321,7 @@ void placeShipsBot(char grid[10][10], char *name, int size)
         int row = rand() % 10 + 1; // random row from 0 --> 9
         int col = rand() % 10;     // random column from 0 --> 9
         bool isHorizontal = rand() % 2;
-        check = CheckAndAdd(row, col, isHorizontal, size, grid);
+        check = CheckAndAddBot(row, col, isHorizontal, size, grid);
         free(Coordinates);
 
     } while (check == false);
@@ -572,6 +644,7 @@ int main()
     bool downRadar = false;
     int radar_row = 0;
     int radar_column = 0;
+
     printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
     while (SunkShipsP1 != 4 && SunkShipsP2 != 4)
     {
