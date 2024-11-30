@@ -609,7 +609,7 @@ int main()
                 break;
             case 'R':
             case 'r':
-                if (RadarSweepP1 > 0)
+                if (RadarSweepP2 > 0)
                 {
                     bool a = Radar(gridp1SECRET, SmokeGridP1, row, column);
                     if (a)
