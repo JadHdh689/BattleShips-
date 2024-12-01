@@ -328,15 +328,15 @@ void placeShipsBot(char grid[10][10], char *name, int size)
 }
 
 // fire function. returns what was hit. If the box aimed at is water --> miss. Else hit. We also change the private arrays.
-char Fire(int row, int column, char givenPublic[10][10], char givenSecret[10][10], bool isHardDiff)
+char Fire(int row, int column, char givenPublic[10][10], char givenSecret[10][10], bool isHardDiff, bool botTurn)
 {
     if (row < 0 || column < 0 || row > 9 || column > 9)
         return '~'; // out of bounds -- no hit
 
     char ReturnChar = '0'; // initialize
-    if (givenSecret[row][column] == '~')
+    if (givenSecret[row][column] == '~' )
     {
-        if (!isHardDiff)
+        if (!isHardDiff || botTurn)
         {
             if (givenPublic[row][column] != '*') // if the spot isn't a sunken ship
                 givenPublic[row][column] = 'o';  // just in the case of easy difficulty
@@ -689,7 +689,7 @@ int main()
 
             case 'F':
             case 'f':
-                hit = Fire(row, column, gridp2PUBLIC, gridp2SECRET, isHardDiff);
+                hit = Fire(row, column, gridp2PUBLIC, gridp2SECRET, isHardDiff, countRound % 2);
                 if (hit != '~')
                     printf("Hit\n");
                 else
@@ -739,22 +739,22 @@ int main()
                 {
                     int isSunkCurrent = SunkShipsP2;
                     bool did_hit = false;
-                    hit = Fire(row, column, gridp2PUBLIC, gridp2SECRET, isHardDiff);
+                    hit = Fire(row, column, gridp2PUBLIC, gridp2SECRET, isHardDiff, countRound % 2);
                     if (hit != '~')
                         did_hit = true;
                     total_fire(hit, gridp2SECRET, &SunkShipsP2, &SmokeScreenP1, &RecentSunkP1);
 
-                    hit = Fire(row + 1, column, gridp2PUBLIC, gridp2SECRET, isHardDiff);
+                    hit = Fire(row + 1, column, gridp2PUBLIC, gridp2SECRET, isHardDiff, countRound % 2);
                     if (hit != '~')
                         did_hit = true;
                     total_fire(hit, gridp2SECRET, &SunkShipsP2, &SmokeScreenP1, &RecentSunkP1);
 
-                    hit = Fire(row, column + 1, gridp2PUBLIC, gridp2SECRET, isHardDiff);
+                    hit = Fire(row, column + 1, gridp2PUBLIC, gridp2SECRET, isHardDiff, countRound % 2);
                     if (hit != '~')
                         did_hit = true;
                     total_fire(hit, gridp2SECRET, &SunkShipsP2, &SmokeScreenP1, &RecentSunkP1);
 
-                    hit = Fire(row + 1, column + 1, gridp2PUBLIC, gridp2SECRET, isHardDiff);
+                    hit = Fire(row + 1, column + 1, gridp2PUBLIC, gridp2SECRET, isHardDiff, countRound % 2);
                     if (hit != '~')
                         did_hit = true;
                     total_fire(hit, gridp2SECRET, &SunkShipsP2, &SmokeScreenP1, &RecentSunkP1);
@@ -782,7 +782,7 @@ int main()
                     {
                         for (int i = 0; i < 10; i++)
                         {
-                            hit = Fire(i, column, gridp2PUBLIC, gridp2SECRET, isHardDiff);
+                            hit = Fire(i, column, gridp2PUBLIC, gridp2SECRET, isHardDiff, countRound % 2);
                             if (hit != '~')
                                 did_hit = true;
                             total_fire(hit, gridp2SECRET, &SunkShipsP2, &SmokeScreenP1, &RecentSunkP1);
@@ -794,7 +794,7 @@ int main()
                             column = 9;
                         for (int i = 0; i < 10; i++)
                         {
-                            hit = Fire(column, i, gridp2PUBLIC, gridp2SECRET, isHardDiff);
+                            hit = Fire(column, i, gridp2PUBLIC, gridp2SECRET, isHardDiff, countRound % 2);
                             if (hit != '~')
                                 did_hit = true;
                             total_fire(hit, gridp2SECRET, &SunkShipsP2, &SmokeScreenP1, &RecentSunkP1);
@@ -1012,7 +1012,7 @@ if (RadarHit)
 
             case 'F':
             case 'f':
-                hit = Fire(row, column, gridp1PUBLIC, gridp1SECRET, isHardDiff);
+                hit = Fire(row, column, gridp1PUBLIC, gridp1SECRET, isHardDiff, countRound % 2);
                 if (hit != '~')
                 {
                     printf("Hit\n");
@@ -1100,10 +1100,12 @@ if (RadarHit)
                     {
                         printf("No enemy ships found.\n");
                         RadarHit = false;
-                        gridp1PUBLIC[row][column] = 'o';
-                        gridp1PUBLIC[row+1][column] = 'o';
-                        gridp1PUBLIC[row][column+1] = 'o';
-                        gridp1PUBLIC[row+1][column+1] = 'o';
+                        if (SmokeScreenP1+SunkShipsP1 == 4){
+                            gridp1PUBLIC[row][column] = 'o';
+                            gridp1PUBLIC[row+1][column] = 'o';
+                            gridp1PUBLIC[row][column+1] = 'o';
+                            gridp1PUBLIC[row+1][column+1] = 'o';
+                        }
                     }
                     RadarSweepP2--;
                 }
@@ -1124,7 +1126,7 @@ if (RadarHit)
                     {
                         for (int j = 0; j < 10; j++)
                         {
-                            if (gridp2SECRET[i][j] != '~')
+                            if (gridp2SECRET[i][j] != '~' && SmokeGridP2[i][j] != 1)
                             {
 
                                 row_SMOKE = i;
@@ -1152,7 +1154,7 @@ if (RadarHit)
                 {
                     bool did_hit = false;
                     int isSunkCurrent = SunkShipsP1;
-                    hit = Fire(row, column, gridp1PUBLIC, gridp1SECRET, isHardDiff);
+                    hit = Fire(row, column, gridp1PUBLIC, gridp1SECRET, isHardDiff, countRound % 2);
                     if (hit != '~')
                     {
                         did_hit = true;
@@ -1162,7 +1164,7 @@ if (RadarHit)
                     }
                     total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up, &recentHit, &recentHit2);
 
-                    hit = Fire(row + 1, column, gridp1PUBLIC, gridp1SECRET, isHardDiff);
+                    hit = Fire(row + 1, column, gridp1PUBLIC, gridp1SECRET, isHardDiff, countRound % 2);
                     if (hit != '~')
                     {
                         did_hit = true;
@@ -1172,7 +1174,7 @@ if (RadarHit)
                     }
                     total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up, &recentHit, &recentHit2);
 
-                    hit = Fire(row, column + 1, gridp1PUBLIC, gridp1SECRET, isHardDiff);
+                    hit = Fire(row, column + 1, gridp1PUBLIC, gridp1SECRET, isHardDiff, countRound % 2);
                     if (hit != '~')
                     {
                         did_hit = true;
@@ -1181,7 +1183,7 @@ if (RadarHit)
                         recent_row = row;
                     }
                     total_fireBOT(hit, gridp1SECRET, &SunkShipsP1, &SmokeScreenP2, &RecentSunkP2, &submarine_up, &destroyer_up, &battleship_up, &carrier_up, &recentHit, &recentHit2);
-                    hit = Fire(row + 1, column + 1, gridp1PUBLIC, gridp1SECRET, isHardDiff);
+                    hit = Fire(row + 1, column + 1, gridp1PUBLIC, gridp1SECRET, isHardDiff, countRound % 2);
                     if (hit != '~')
                     {
                         did_hit = true;
@@ -1253,7 +1255,7 @@ if (RadarHit)
                     {
                         for (int i = 0; i < 10; i++)
                         {
-                            hit = Fire(CoordinateShoot, i, gridp1PUBLIC, gridp1SECRET, isHardDiff);
+                            hit = Fire(CoordinateShoot, i, gridp1PUBLIC, gridp1SECRET, isHardDiff, countRound % 2);
                             if (hit != '~')
                             {
                                 did_hit = true;
@@ -1269,7 +1271,7 @@ if (RadarHit)
                     {
                         for (int i = 0; i < 10; i++)
                         {
-                            hit = Fire(i, CoordinateShoot, gridp1PUBLIC, gridp1SECRET, isHardDiff);
+                            hit = Fire(i, CoordinateShoot, gridp1PUBLIC, gridp1SECRET, isHardDiff, countRound % 2);
                             if (hit != '~')
                             {
                                 did_hit = true;
