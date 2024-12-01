@@ -1651,6 +1651,8 @@ int main()
 
         printf("\n\n\n\n\n");
     }
+    
+    // Game ended
 
     if (SunkShipsP1 == 4)
         printf("Bot wins.\n");
@@ -1659,7 +1661,7 @@ int main()
     free(name1);
 
     return 0;
-}
+} 
 
 // if hit -> go up if present or go down if present or go left or goo right and keep on going where present
 //
