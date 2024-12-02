@@ -1,6 +1,22 @@
 •	Difficulty chosen is based on whether or not misses appear on the grid.
 
+There are 4 grids: 
+public grid for player 1
+public grid for bot 
+private grid for player 1
+private grid for bot
+
+Additional grids:
+SmokeScreenP1 --> for player
+SmokeScreenP2 --> for bot
+SunkShipsGrid --> the bot uses it to sink ships that have been hit but not fully sunk.
+
+
+
+initialize all the grids and place the ships 
 For the player:  place all ships and do moves based on what the player chooses.
+
+
 
 For bot:
 
@@ -46,3 +62,9 @@ the bot would fire at the 4 cells, from highest probability to lowest, until it 
 
 
 •	 For the move Torpedo, the bot will calculate the sum of probabilities of the cells in each row and column and fire at the one with the highest probability. 
+
+
+
+
+
+
